@@ -1,0 +1,16 @@
+<section class="random-user">
+    <div>
+        <p>Random Users Generater</p>
+        <a routerLink="/">Go Back</a>
+    </div>
+
+    <div>
+        <img src="{{userImage}}" alt="">
+        {{ userName }}
+    </div>
+
+    <div>
+        <button (click)="fetchData()">Get User</button>
+    </div>
+</section>
+
