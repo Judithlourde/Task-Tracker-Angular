@@ -1,0 +1,349 @@
+<----------------------------Pintura---------------------->
+        // .then(({ dest }) => {
+        //     console.log(dest)
+        //     // Show resulting image preview
+        //     const preview = new Image();
+        //     preview.src = URL.createObjectURL(dest);
+ 
+        //     this.projThumb = <string>(
+        //         this.domSanitizer.bypassSecurityTrustUrl(
+        //             URL.createObjectURL(dest)      
+        //         )
+        //     );
+        //     console.log(this.projThumb)
+        // }); 
+        // let blob = await fetch(this.projThumb).then(r => r.blob());
+        // let file = await fetch(this.projThumb).then(r => r.blob()).then(blobFile => new File([blobFile], this.projThumb, { type: "image/png" })) 
+        // console.log(file)
+
+          // create a request object
+                    // const request = new XMLHttpRequest();
+                    // request.open('POST', this.serviceUrl);
+                
+                    // // show progress in interface
+                    // request.upload.onprogress = onprogress;
+
+                    // // catch errors
+                    // request.onerror = () =>
+                    //     reject('oh no something went wrong!');
+                    // request.ontimeout = () =>
+                    //     reject('oh no request timed out!');
+
+                    // // handle success state
+                    // request.onload = () => {
+                    //     if (request.status >= 200 && request.status < 300) {
+                    //         // store request in state so it can be accessed by other processes
+                    //         state.store = request;
+                    //         resolve(state);
+                    //     } else {
+                    //         reject('oh no something went wrong!');
+                    //     }
+                    // };
+                    // // start uploading the image
+                    // request.send(formData);
+
+<****************************** File Reader ***************************************>
+         // var reader = new FileReader();
+
+        // this.imagePath = files;
+        // const ans1 = reader.readAsDataURL(files[0]); 
+        // reader.onload = (_event) => { 
+        //     this.imageUrl = reader.result; 
+        //     // this.editImagePintura(files[0])
+        // }
+
+        this.groupedProjs.map(a => a.children.map(b => b.data.id))
+
+        
+    //**********************************************  Upload image with pintura image editor ********************* */
+
+    handleInputChange(): void {
+        this.editorResult = null;
+        // Exit if no files selected
+        if (!this.fileInput.nativeElement.files.length) return;
+
+        // Edit the selected file
+        this.editorEnabled = true;
+        this.editorSrc = this.fileInput.nativeElement.files[0];
+    }
+
+    handleEditorHide(): void {
+        this.editorEnabled = false;
+    }
+
+    handleEditorProcess(imageState: any) {
+        // Create a files list
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(imageState.dest);
+
+        processDefaultImage(imageState.dest, {   
+            imageWriter: {
+                targetSize: {
+                    width: 280,
+                    height: 200,
+                    fit: 'cover',
+                },
+                
+                store: (state: { dest: any; }) =>
+                new Promise(() => {
+                    const { dest } = state;
+                    console.log(dest)
+
+                    if (this.selectedAsset) this.saveImage(dest)
+
+                    this.editorResult = <string>(
+                        this.domSanitizer.bypassSecurityTrustResourceUrl(
+                            URL.createObjectURL(dest)
+                        )
+                    );
+                }),
+            },                   
+            imageCropAspectRatio: 2,                   
+        })
+
+        // Assign new files
+        // this.fileInput.nativeElement.files = dataTransfer.files;
+
+        // Preview image after edit 
+        // this.editorResult = <string>(
+        //     this.domSanitizer.bypassSecurityTrustResourceUrl(
+        //         URL.createObjectURL(imageState.dest)
+        //     )
+        // );
+
+    //     // create a formdata object to send to the server
+    //     const formData = new FormData();
+    //     formData.append('image', imageState.dest, imageState.dest.name);
+
+    //     // if (this.assetaction = "Endre") {
+    //     if (!imageState.dest.name.toLowerCase().endsWith('png') && !imageState.dest.name.toLowerCase().endsWith('jpg')) return;
+    //     formData.append('file', imageState.dest, imageState.dest.name);
+    //     formData.append('projectId', this.selectedAsset.data.id.toString());
+    //     this.http.post(this.serviceUrl + 'UploadProjectImage?projectId' + this.selectedAsset.data.id.toString(), formData, {reportProgress: true, observe: 'events'})
+
+
+    //     .subscribe(event => {
+    //         if (event.type === HttpEventType.UploadProgress)
+    //             this.progress = Math.round(100 * event.loaded / event.total);
+                
+    //         else if (event.type === HttpEventType.Response) {
+    //             this.message = 'Upload success.';
+    //             this.projThumb = environment.APIUrl + "Project/GetImage?projectId=" + this.selectedAsset.data.id.toString() + "&ext=" + (<any>event.body).ext;
+    //         }
+    //     });
+
+        this.editorEnabled = false;
+    }
+
+    saveImage(dest: any) {
+        // create a formdata object to send to the server
+        const formData = new FormData();
+        formData.append('image', dest, dest.name);
+    
+        if (!dest.name.toLowerCase().endsWith('png') && !dest.name.toLowerCase().endsWith('jpg')) return;
+        formData.append('file', dest, dest.name);
+        formData.append('projectId', this.selectedAsset.data.id.toString());
+        this.http.post(this.serviceUrl + 'UploadProjectImage?projectId' + this.selectedAsset.data.id.toString(), formData, {reportProgress: true, observe: 'events'})
+
+        .subscribe(event => {
+            if (event.type === HttpEventType.UploadProgress)
+                this.progress = Math.round(100 * event.loaded / event.total);
+                
+            else if (event.type === HttpEventType.Response) {
+                this.message = 'Upload success.';
+                this.projThumb = environment.APIUrl + "Project/GetImage?projectId=" + this.selectedAsset.data.id.toString() + "&ext=" + (<any>event.body).ext;
+            }
+        });
+    }
+    //**********************************************  Upload image with pintura image editor ********************* */
+
+    // handleInputChange(): void {
+    //     this.editorResult = null;
+    //     // Exit if no files selected
+    //     if (!this.fileInput.nativeElement.files.length) return;
+
+    //     // Edit the selected file
+    //     this.editorEnabled = true;
+    //     this.editorSrc = this.fileInput.nativeElement.files[0];
+    //     this.editImagePintura(this.editorSrc)
+    // }
+
+    // async editImagePintura(fileToUpload: any) {
+    //     await processDefaultImage(fileToUpload, {   
+    //         imageWriter: {
+    //             targetSize: {
+    //                 width: 280,
+    //                 height: 200,
+    //                 fit: 'cover',                           
+    //             }, 
+    //             store: (state: { dest: any; }) =>
+    //             new Promise(() => {
+    //                 const { dest } = state;
+    //                 console.log(dest)
+
+    //                 this.editorResult = <string>(
+    //                     this.domSanitizer.bypassSecurityTrustResourceUrl(
+    //                         URL.createObjectURL(dest)
+    //                     )
+    //                 );
+    //                 // create a formdata object to send to the server
+    //                 // const formData = new FormData();
+    //                 // formData.append('image', dest, dest.name);
+                
+    //                 // if (!dest.name.toLowerCase().endsWith('png') && !dest.name.toLowerCase().endsWith('jpg')) return;
+    //                 // formData.append('file', dest, dest.name);
+    //                 // formData.append('projectId', this.selectedAsset.data.id.toString());
+    //                 // this.http.post(this.serviceUrl + 'UploadProjectImage?projectId' + this.selectedAsset.data.id.toString(), formData, {reportProgress: true, observe: 'events'})
+
+    //                 // .subscribe(event => {
+    //                 //     if (event.type === HttpEventType.UploadProgress)
+    //                 //         this.progress = Math.round(100 * event.loaded / event.total);
+                            
+    //                 //     else if (event.type === HttpEventType.Response) {
+    //                 //         this.message = 'Upload success.';
+    //                 //         this.projThumb = environment.APIUrl + "Project/GetImage?projectId=" + this.selectedAsset.data.id.toString() + "&ext=" + (<any>event.body).ext;
+    //                 //     }
+    //                 // });
+                   
+    //             }),
+    //         },                   
+    //         imageCropAspectRatio: 2,                   
+    //     })
+    // }
+    
+
+    //**********************************************  Upload image without pintura image editor ******************************** */
+    // uploadFile (files: string | any[]) {
+    //     this.projThumb = null
+    //     this.message = null;
+    //     this.progress = null;
+    //     if (files.length === 0) {
+    //         return;
+    //     }
+    //     this.fileToUpload = <File>files[0];
+    //     this.editImagePintura(this.fileToUpload)
+    // }
+
+    // async editImagePintura(fileToUpload: any) {
+    //     await processDefaultImage(fileToUpload, {   
+    //         imageWriter: {
+    //             targetSize: {
+    //                 width: 280,
+    //                 height: 200,
+    //                 fit: 'cover',                           
+    //             }, 
+    //             store: (state: { dest: any; }) =>
+    //             new Promise(() => {
+    //                 const { dest } = state;
+    //                 console.log(dest)
+    //                 // create a formdata object to send to the server
+    //                 const formData = new FormData();
+    //                 formData.append('image', dest, dest.name);
+
+    //                 // if (this.assetaction = "Endre") {
+    //                     if (!dest.name.toLowerCase().endsWith('png') && !dest.name.toLowerCase().endsWith('jpg')) return;
+    //                     formData.append('file', dest, dest.name);
+    //                     formData.append('projectId', this.selectedAsset.data.id.toString());
+    //                     this.http.post(this.serviceUrl + 'UploadProjectImage?projectId' + this.selectedAsset.data.id.toString(), formData, {reportProgress: true, observe: 'events'})
+
+    //                     .subscribe(event => {
+    //                         if (event.type === HttpEventType.UploadProgress)
+    //                             this.progress = Math.round(100 * event.loaded / event.total);
+                                
+    //                         else if (event.type === HttpEventType.Response) {
+    //                             this.message = 'Upload success.';
+    //                             this.projThumb = environment.APIUrl + "Project/GetImage?projectId=" + this.selectedAsset.data.id.toString() + "&ext=" + (<any>event.body).ext;
+    //                         }
+    //                     });
+    //                 // }
+    //             }),
+    //         },                   
+    //         imageCropAspectRatio: 2,                   
+    //     })
+    // }
+
+    ////////////////// Uploading Image //////////////////////
+        <!-- <input type="file" #file placeholder="Choose file" (change)="uploadFile(file.files)" style="display:none;">  -->
+            <!-- <div>
+                <input type="file" #file placeholder="Choose file" (change)="uploadFile(file.files)" style="display:none;">
+                <h4>Vil du endre prosjekt bilde?</h4>
+                <button mat-icon-button type="button" (click)="file.click()" class="btn btn-sm" matTooltip="Last opp bilde">
+                    <i class="pi pi-fw pi-camera"></i>Upload
+                </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column;">
+                <img *ngIf="projThumb" [src]="projThumb" style="float: right" alt="project image" />
+
+                <div style="display: flex; flex-direction: row; padding: 10px 0px;">
+                    <span class="upload" *ngIf="progress > 0">
+                        {{progress}}%
+                    </span>
+                    <span class="upload" *ngIf="message">
+                        {{message}}
+                    </span>
+                </div>
+            </div> -->
+
+            <!-- <label style="cursor:pointer" class="b-button" for="upload">Upload Image</label> -->
+                    <!-- <input #fileInput type="file" id="upload" style="visibility:hidden;" accept="image/*" (change)="handleInputChange()"/> -->
+
+
+                //********************************************************* Show model list *********************************************//
+                    <!-- <p-table #dtmodel [value]="models" autoLayout=true [loading]="loading" sortField="FileName"
+                sortMode="single" dataKey="BimFileId" [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+                [scrollable]="true" scrollHeight="flex" [style]="{'max-height': '600px'}" responsiveLayout="scroll"
+                [loading]="loading" (onRowSelect)="OnModelSelect($event)" (onRowUnselect)="OnModelDeselect($event)"
+                selectionMode="single" [(selection)]="selectedmodel" styleClass="p-datatable-sm max-w-full"
+                currentPageReportTemplate="Viser {first} til {last} av {totalRecords} modeller"
+                [rowsPerPageOptions]="[10,25,50]" [globalFilterFields]="['Project','FileName']">
+                <ng-template pTemplate="caption" emptyMessage="Ingen modeller funnet">
+                    <span class="p-input-icon-left ml-auto" style="padding: 0 14px 0 14px;">
+                        <i class="pi pi-search" style="padding-left: 14px;"></i>
+                        <input pInputText type="text" (input)="dtmodel.filterGlobal($event.target.value, 'contains')"
+                            placeholder="Søk" />
+                    </span>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="FileName">Filnavn <p-sortIcon field="FileName"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="FileType">Filtype <p-sortIcon field="FileType"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Version">Versjon <p-sortIcon field="Version"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Created">Opprettet <p-sortIcon field="Created"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="CreatedBy">Opprettet av <p-sortIcon field="CreatedBy"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Size">Størrelse <p-sortIcon field="Size"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Status">Status <p-sortIcon field="Status"></p-sortIcon>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-model>
+                    <tr [pSelectableRow]="model">
+                        <td class="limitcol">{{model.FileName}}</td>
+                        <td>{{model.FileType}}</td>
+                        <td>{{model.Version}}</td>
+                        <td>{{model.Created | date: 'd.M.yy' }}</td>
+                        <td>{{model.CreatedBy}}</td>
+                        <td>{{model.Size}}</td>
+                        <td>
+                            <i class="{{statusIcon(model.Status)}}"></i>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table> -->
+
+            ////////////////********************* Preparing for the clipboard image function ***************************//
+            // async handleModel() {
+    //     this.models = await this.modelService.FetchProjectModels(this.selectedCompanyId, 0, this.includeVoided);
+    //     console.log(this.models)
+    //     this.selectedmodel = this.models.filter(model => model.Project === this.editAsset.Name)
+    //     console.log(this.selectedmodel);   
+    //     const modelImageElement = document.getElementById('modelImage'); 
+    //     const imgElement = document.createElement('img');
+    //     modelImageElement.appendChild(imgElement);   
+    // }
